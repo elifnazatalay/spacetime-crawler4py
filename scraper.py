@@ -63,15 +63,11 @@ def is_valid(url):
     # There are already some conditions that return False.
     #remove calenders and ML sites
     try:
-        ## normalize case
-        parsed = urlparse(url.lower())
+       
+        parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
         
-        # ## contains //
-        # if "//" in url:
-        #     return False
-
         domains = {
             'ics.uci.edu',
             'cs.uci.edu', 
@@ -83,11 +79,6 @@ def is_valid(url):
         
         ## strip off fragment
         parsed = parsed._replace(fragment = "")
-        parsed = urlparse(url)
-
-        ## query parameters
-        if parsed.query != "":
-            return False
         
         ## invalid keywords
         words = parsed.path.split("/")
@@ -120,11 +111,11 @@ def is_valid(url):
          
         ## depth of path
         depth_count = parsed.path.count('/')
-        if depth_count > 6: ## path always starts with /
+        if depth_count > 9: ## path always starts with /
             return False
-       
 
-        if re.match(
+       
+        return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
@@ -132,27 +123,8 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
-            return False
-    
-        ## repeated patterns, double check this
-        # duplicate_count = 0
-        # prev_word = None
-        # for word in words:
-        #     if word != "" and word == prev_word:
-        #         duplicate_count += 1
-        #         if duplicate_count > 2:
-        #             return False
-        #     prev_word = word
-        non_empty_words = [w for w in words if w != ""]
-        for k in range(1, 4):
-            pattern = non_empty_words[0:k]
-            if pattern != "" and len(non_empty_words) > k * 2:
-                if all(non_empty_words[i:i+k] == pattern for i in range(0, len(non_empty_words), k)):
-                    return False
-    
-        return True
-    
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            
 
     except TypeError:
         print ("TypeError for ", parsed)
