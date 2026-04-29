@@ -8,6 +8,8 @@ longest_page_url = ""
 longest_page_word_count = 0
 
 def scraper(url, resp):
+    
+    #ensure no duplicate links within a crawl
     links = extract_next_links(url, resp)
 
     result = []
@@ -43,6 +45,8 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    
+    #check file status 
     global longest_page_url, longest_page_word_count
 
     hyperlinks = []
@@ -51,11 +55,8 @@ def extract_next_links(url, resp):
         return hyperlinks
     elif resp.raw_response==None or not resp.raw_response.content:
         return hyperlinks
-    
-    if len(resp.raw_response.content) > 7_000_000:
-        print("File to large to parse")
-        return hyperlinks
 
+    #add to unique pages and update report.txt
     defrag, _ = urldefrag(url)
     unique_pages.add(defrag)
 
@@ -86,7 +87,7 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
-    #remove calenders and ML sites
+    
     try:
        
         parsed = urlparse(url)
@@ -105,7 +106,7 @@ def is_valid(url):
         ## strip off fragment
         parsed = parsed._replace(fragment = "")
         
-        ## invalid keywords
+        ## invalid keywords for trap checks
         bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_files"}
         words = parsed.path.split("/")
         for word in words:
@@ -127,16 +128,14 @@ def is_valid(url):
             return False
         elif "do=" in parsed.query:
             return False
+        elif "diff=" in parsed.query:
+            return False
             
         
-        ## length of path
-        if len(url) > 200:
-            return False
-        
-        if len(parsed.query)>100:
+        #trap checks
+        if len(url) > 200. or len(parsed.query)>100:
             return False
          
-        ## depth of path
         depth_count = parsed.path.count('/')
         if depth_count > 8: ## path always starts with /
             return False
