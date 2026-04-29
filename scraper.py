@@ -59,6 +59,12 @@ def extract_next_links(url, resp):
     #add to unique pages and update report.txt
     defrag, _ = urldefrag(url)
     unique_pages.add(defrag)
+    
+    if len(resp.raw_response.content) > 7_000_000:
+        print("File to large to parse")
+        return hyperlinks
+    elif len(resp.raw_response.content)<30: #for too small of files
+        return hyperlinks
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     words = get_words_from_html(soup)
@@ -137,7 +143,7 @@ def is_valid(url):
             return False
          
         depth_count = parsed.path.count('/')
-        if depth_count > 8: ## path always starts with /
+        if depth_count > 8: 
             return False
 
        
