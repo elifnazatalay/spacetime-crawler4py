@@ -3,6 +3,8 @@ from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 
 unique_pages = set()
+longest_page_url = ""
+longest_page_word_count = 0
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -25,6 +27,11 @@ def scraper(url, resp):
 
     return result
 
+def get_words_from_html(soup):
+    text = soup.get_text(separator=" ")
+    words = re.findall(r"[a-zA-Z0-9]+", text.lower())
+    return words
+
 def extract_next_links(url, resp):
     # Implementation required.
     # url: the URL that was used to get the page
@@ -35,6 +42,8 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    global longest_page_url, longest_page_word_count
+
     hyperlinks = []
     if resp.status!=200:
         print(resp.error)
@@ -44,12 +53,23 @@ def extract_next_links(url, resp):
 
     defrag, _ = urldefrag(url)
     unique_pages.add(defrag)
-    with open('report.txt', 'w') as f:
-        pages = str(len(unique_pages))
-        f.write(f"Final number of unique pages: {pages}")
-        
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+    words = get_words_from_html(soup)
+    word_count = len(words)
+
+    if word_count > longest_page_word_count:
+        longest_page_word_count = word_count
+        longest_page_url = defrag
+
+    with open('report.txt', 'w') as f:
+        pages = str(len(unique_pages))
+        f.write(f"Final number of unique pages: {pages}\n\n")
+
+        f.write("Longest page by word count:\n")
+        f.write(f"URL: {longest_page_url}\n")
+        f.write(f"Word count: {longest_page_word_count}\n")
+        
     for link in soup.find_all('a', href=True):
         joined = urljoin(url, link['href'])
         joined, _ = urldefrag(joined)
