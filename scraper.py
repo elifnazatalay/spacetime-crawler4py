@@ -46,7 +46,7 @@ def extract_next_links(url, resp):
     unique_pages.add(defrag)
     with open('report.txt', 'w') as f:
         pages = str(len(unique_pages))
-        f.write(f"Final unique number of pages: {pages}")
+        f.write(f"Final number of unique pages: {pages}")
         
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
