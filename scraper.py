@@ -81,7 +81,7 @@ def is_valid(url):
         parsed = parsed._replace(fragment = "")
         
         ## invalid keywords
-        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_details", "databases", "tab_files"}
+        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_files"}
         words = parsed.path.split("/")
         for word in words:
             word = word.lower()
@@ -91,6 +91,12 @@ def is_valid(url):
                 return False
         
         if '/machine-learning-databases' in parsed.path:
+            return False
+        elif "tab_details=" in parsed.query:
+            return False
+        elif "tab_files=" in parsed.query:
+            return False
+        elif "do=" in parsed.query:
             return False
             
         
