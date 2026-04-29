@@ -63,8 +63,13 @@ def is_valid(url):
     # There are already some conditions that return False.
     #remove calenders and ML sites
     try:
-        parsed = urlparse(url)
+        ## normalize case
+        parsed = urlparse(url.lower())
         if parsed.scheme not in set(["http", "https"]):
+            return False
+        
+        ## contains //
+        if "//" in url:
             return False
 
         domains = {
@@ -75,7 +80,46 @@ def is_valid(url):
         }
         if not any(parsed.netloc.endswith(d) for d in domains):
             return False
-        return not re.match(
+        
+        ## strip off fragment
+        parsed = parsed._replace(fragment = "")
+        parsed = urlparse(url)
+
+        ## query parameters
+        if parsed.query != "":
+            return False
+        
+        ## invalid keywords
+        words = parsed.path.split("/")
+        for word in words:
+            if word == "signup" or word == "logout" or word == "login" or word == "mailto" or word == "register" or word == "javascript":
+                return False
+        
+        ## calendar / dynamic pages
+        for word in words:
+            if word == "calendar" or word == "archive" or word == "event":
+                return False
+            if word.isdigit() and len(word) > 4: ## duoble check this
+                return False
+            
+        ## ml sites
+        ml_words = {"ml", "machine-learning", "deep_learning", "machine_learning", "deep-learning", "tensorflow", "neural",  "ai", "pytorch"}
+        for word in words:
+            if word in ml_words:
+                return False
+            
+        
+        ## length of path
+        if len(url) > 300:
+            return False
+         
+        ## depth of path
+        depth_count = parsed.path.count('/')
+        if depth_count > 6: ## path always starts with /
+            return False
+       
+
+        if re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
@@ -83,7 +127,27 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
+            return False
+    
+        ## repeated patterns, double check this
+        # duplicate_count = 0
+        # prev_word = None
+        # for word in words:
+        #     if word != "" and word == prev_word:
+        #         duplicate_count += 1
+        #         if duplicate_count > 2:
+        #             return False
+        #     prev_word = word
+        non_empty_words = [w for w in words if w != ""]
+        for k in range(1, 4):
+            pattern = non_empty_words[0:k]
+            if pattern != "" and len(non_empty_words) > k * 2:
+                if all(non_empty_words[i:i+k] == pattern for i in range(0, len(non_empty_words), k)):
+                    return False
+    
+        return True
+    
 
     except TypeError:
         print ("TypeError for ", parsed)
