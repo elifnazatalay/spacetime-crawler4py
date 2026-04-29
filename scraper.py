@@ -3,11 +3,14 @@ from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 from lxml import html
 from collections import Counter
+from urllib.parse import urlparse
+from collections import defaultdict
 
 
 unique_pages = set()
 longest_page_url = ""
 longest_page_word_count = 0
+subdomain_count = defaultdict(int)
 
 word_frequencies = Counter()
 
@@ -82,7 +85,22 @@ def extract_next_links(url, resp):
 
     #add to unique pages and update report.txt
     defrag, _ = urldefrag(url)
-    unique_pages.add(defrag)
+    ##sunique_pages.add(defrag)
+
+     ## write subdomain code here
+    if defrag not in unique_pages:
+        unique_pages.add(defrag)
+        parsed = urlparse(url)
+        net_loc = parsed.netloc
+        # parts = net_loc.split(".")
+        # sub_domain = ".".join(parts[0:len(parts)-2])
+
+        if net_loc.endswith("uci.edu"):
+            ##sub_domain = net_loc.replace(".uci.edu", "")
+            if net_loc == "uci.edu":
+                pass
+            else:
+                subdomain_count[sub_domain] += 1
     
     if len(resp.raw_response.content) > 7_000_000:
         print("File to large to parse")
@@ -105,6 +123,7 @@ def extract_next_links(url, resp):
     if word_count > longest_page_word_count:
         longest_page_word_count = word_count
         longest_page_url = defrag
+   
 
     with open('report.txt', 'w') as f:
         pages = str(len(unique_pages))
@@ -117,6 +136,10 @@ def extract_next_links(url, resp):
         f.write("\n50 most common words:\n")
         for word, count in word_frequencies.most_common(50):
             f.write(f"{word}, {count}\n")
+
+        f.write("\nSubdomain counts ordered by subdomain alphabetically:\n")
+        for key, value in sorted(subdomain_count.items(), key=lambda x: x[0]):
+            f.write(f"{key}, {value}\n")
             
     for link in soup.find_all('a', href=True):
         joined = urljoin(url, link['href'])
