@@ -2,10 +2,33 @@ import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 from lxml import html
+from collections import Counter
+
 
 unique_pages = set()
 longest_page_url = ""
 longest_page_word_count = 0
+
+word_frequencies = Counter()
+
+STOP_WORDS = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an",
+    "and", "any", "are", "as", "at", "be", "because", "been", "before",
+    "being", "below", "between", "both", "but", "by", "can", "did", "do",
+    "does", "doing", "down", "during", "each", "few", "for", "from",
+    "further", "had", "has", "have", "having", "he", "her", "here",
+    "hers", "herself", "him", "himself", "his", "how", "i", "if", "in",
+    "into", "is", "it", "its", "itself", "just", "me", "more", "most",
+    "my", "myself", "no", "nor", "not", "now", "of", "off", "on", "once",
+    "only", "or", "other", "our", "ours", "ourselves", "out", "over",
+    "own", "same", "she", "should", "so", "some", "such", "than", "that",
+    "the", "their", "theirs", "them", "themselves", "then", "there",
+    "these", "they", "this", "those", "through", "to", "too", "under",
+    "until", "up", "very", "was", "we", "were", "what", "when", "where",
+    "which", "while", "who", "whom", "why", "with", "you", "your",
+    "yours", "yourself", "yourselves"
+}
+
 
 def scraper(url, resp):
     
@@ -48,6 +71,7 @@ def extract_next_links(url, resp):
     
     #check file status 
     global longest_page_url, longest_page_word_count
+    global word_frequencies
 
     hyperlinks = []
     if resp.status!=200:
@@ -70,6 +94,14 @@ def extract_next_links(url, resp):
     words = get_words_from_html(soup)
     word_count = len(words)
 
+    filtered_words = []
+
+    for word in words:
+        if word not in STOP_WORDS and len(word) > 1:
+            filtered_words.append(word)
+
+    word_frequencies.update(filtered_words)
+
     if word_count > longest_page_word_count:
         longest_page_word_count = word_count
         longest_page_url = defrag
@@ -82,6 +114,10 @@ def extract_next_links(url, resp):
         f.write(f"URL: {longest_page_url}\n")
         f.write(f"Word count: {longest_page_word_count}\n")
         
+        f.write("\n50 most common words:\n")
+        for word, count in word_frequencies.most_common(50):
+            f.write(f"{word}, {count}\n")
+            
     for link in soup.find_all('a', href=True):
         joined = urljoin(url, link['href'])
         joined, _ = urldefrag(joined)
