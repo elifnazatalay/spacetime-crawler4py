@@ -68,9 +68,9 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]):
             return False
         
-        ## contains //
-        if "//" in url:
-            return False
+        # ## contains //
+        # if "//" in url:
+        #     return False
 
         domains = {
             'ics.uci.edu',
@@ -92,21 +92,26 @@ def is_valid(url):
         ## invalid keywords
         words = parsed.path.split("/")
         for word in words:
-            if word == "signup" or word == "logout" or word == "login" or word == "mailto" or word == "register" or word == "javascript":
+            word = word.lower()
+            if word == "signup" or word == "logout" or word == "login" or word == "register":
                 return False
         
         ## calendar / dynamic pages
         for word in words:
-            if word == "calendar" or word == "archive" or word == "event":
+            word = word.lower()
+            if word == "calendar" or word == "event" or word =='events':
                 return False
-            if word.isdigit() and len(word) > 4: ## duoble check this
+            if word.isdigit() and len(word) == 4: ## duoble check this to maybe restrict to a certain date
                 return False
             
         ## ml sites
-        ml_words = {"ml", "machine-learning", "deep_learning", "machine_learning", "deep-learning", "tensorflow", "neural",  "ai", "pytorch"}
-        for word in words:
-            if word in ml_words:
-                return False
+        # ml_words = {"ml", "machine-learning", "deep_learning", "machine_learning", "deep-learning", "tensorflow", "neural",  "ai", "pytorch"}
+        # for word in words:
+        #     if word in ml_words:
+        #         return False
+
+        if '/machine-learning-databases' in parsed.path:
+            return False
             
         
         ## length of path
