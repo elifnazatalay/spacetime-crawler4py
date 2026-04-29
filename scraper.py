@@ -2,6 +2,8 @@ import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 
+unique_pages = set()
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
 
@@ -13,8 +15,6 @@ def scraper(url, resp):
             continue
 
         link = link.strip()
-
-        link, _ = urldefrag(link)
 
         if link in seen:
             continue
@@ -41,6 +41,13 @@ def extract_next_links(url, resp):
         return hyperlinks
     elif resp.raw_response==None or not resp.raw_response.content:
         return hyperlinks
+
+    defrag, _ = urldefrag(url)
+    unique_pages.add(defrag)
+    with open('report.txt', 'w') as f:
+        pages = str(len(unique_pages))
+        f.write(f"Final unique number of pages: {pages}")
+        
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     for link in soup.find_all('a', href=True):
