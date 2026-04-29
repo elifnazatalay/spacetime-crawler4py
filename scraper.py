@@ -81,37 +81,29 @@ def is_valid(url):
         parsed = parsed._replace(fragment = "")
         
         ## invalid keywords
+        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_details", "databases", "tab_files"}
         words = parsed.path.split("/")
         for word in words:
             word = word.lower()
-            if word == "signup" or word == "logout" or word == "login" or word == "register":
+            if word in bad_words:
+                return False
+            elif word.isdigit() and len(word) == 4: ## double check this to maybe restrict to a certain date
                 return False
         
-        ## calendar / dynamic pages
-        for word in words:
-            word = word.lower()
-            if word == "calendar" or word == "event" or word =='events':
-                return False
-            if word.isdigit() and len(word) == 4: ## duoble check this to maybe restrict to a certain date
-                return False
-            
-        ## ml sites
-        # ml_words = {"ml", "machine-learning", "deep_learning", "machine_learning", "deep-learning", "tensorflow", "neural",  "ai", "pytorch"}
-        # for word in words:
-        #     if word in ml_words:
-        #         return False
-
         if '/machine-learning-databases' in parsed.path:
             return False
             
         
         ## length of path
-        if len(url) > 300:
+        if len(url) > 200:
+            return False
+        
+        if len(parsed.query)>100:
             return False
          
         ## depth of path
         depth_count = parsed.path.count('/')
-        if depth_count > 9: ## path always starts with /
+        if depth_count > 8: ## path always starts with /
             return False
 
        
