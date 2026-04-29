@@ -1,6 +1,7 @@
 import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
+from lxml import html
 
 unique_pages = set()
 longest_page_url = ""
@@ -49,6 +50,10 @@ def extract_next_links(url, resp):
         print(resp.error)
         return hyperlinks
     elif resp.raw_response==None or not resp.raw_response.content:
+        return hyperlinks
+    
+    if len(resp.raw_response.content) > 7_000_000:
+        print("File to large to parse")
         return hyperlinks
 
     defrag, _ = urldefrag(url)
@@ -101,7 +106,7 @@ def is_valid(url):
         parsed = parsed._replace(fragment = "")
         
         ## invalid keywords
-        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_details", "databases", "tab_files"}
+        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_files"}
         words = parsed.path.split("/")
         for word in words:
             word = word.lower()
@@ -111,6 +116,16 @@ def is_valid(url):
                 return False
         
         if '/machine-learning-databases' in parsed.path:
+            return False
+        elif '/dataset' in parsed.path:
+            return False
+        elif '/people' in parsed.path: #fixes denied by robot rules 608 error for lots of links
+            return False
+        elif "tab_details=" in parsed.query:
+            return False
+        elif "tab_files=" in parsed.query:
+            return False
+        elif "do=" in parsed.query:
             return False
             
         
