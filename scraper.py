@@ -1,9 +1,37 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urldefrag
 
 def scraper(url, resp):
+    if resp is None:
+        return []
+
+    if resp.status != 200:
+        return []
+
+    if resp.raw_response is None or resp.raw_response.content is None:
+        return []
+
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+
+    result = []
+    seen = set()
+
+    for link in links:
+        if not link:
+            continue
+
+        link = link.strip()
+
+        link, _ = urldefrag(link)
+
+        if link in seen:
+            continue
+
+        if is_valid(link):
+            seen.add(link)
+            result.append(link)
+
+    return result
 
 def extract_next_links(url, resp):
     # Implementation required.
