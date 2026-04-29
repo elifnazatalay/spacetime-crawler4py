@@ -1,6 +1,7 @@
 import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
+from lxml import html
 
 unique_pages = set()
 
@@ -47,9 +48,11 @@ def extract_next_links(url, resp):
     with open('report.txt', 'w') as f:
         pages = str(len(unique_pages))
         f.write(f"Final number of unique pages: {pages}")
-        
+    if len(content) > 7_000_000:
+        print("File to large to parse")
+        return hyperlinks
 
-    soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+    soup = BeautifulSoup(resp.raw_response.content, 'lxml')
     for link in soup.find_all('a', href=True):
         joined = urljoin(url, link['href'])
         joined, _ = urldefrag(joined)
@@ -91,6 +94,10 @@ def is_valid(url):
                 return False
         
         if '/machine-learning-databases' in parsed.path:
+            return False
+        elif '/dataset' in parsed.path:
+            return False
+        elif '/people' in parsed.path: #fixes denied by robot rules 608 error for lots of links
             return False
         elif "tab_details=" in parsed.query:
             return False
