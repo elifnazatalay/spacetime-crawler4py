@@ -3,15 +3,6 @@ from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 
 def scraper(url, resp):
-    if resp is None:
-        return []
-
-    if resp.status != 200:
-        return []
-
-    if resp.raw_response is None or resp.raw_response.content is None:
-        return []
-
     links = extract_next_links(url, resp)
 
     result = []
