@@ -15,6 +15,8 @@ word_frequencies = Counter()
 seen_checksums = set()
 seen_docs = []
 
+## restructure?
+
 # Stop words sourced from: https://www.ranks.nl/stopwords
 STOP_WORDS = {
     "a", "about", "above", "after", "again", "against", "all", "am", "an",
