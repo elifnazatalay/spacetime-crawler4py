@@ -6,13 +6,14 @@ from collections import Counter
 from urllib.parse import urlparse
 from collections import defaultdict
 
-
 unique_pages = set()
 longest_page_url = ""
 longest_page_word_count = 0
 subdomain_count = defaultdict(int)
 
 word_frequencies = Counter()
+seen_checksums = set()
+seen_docs = []
 
 # Stop words sourced from: https://www.ranks.nl/stopwords
 STOP_WORDS = {
@@ -91,6 +92,11 @@ def extract_next_links(url, resp):
         return hyperlinks
     elif resp.raw_response==None or not resp.raw_response.content:
         return hyperlinks
+
+    ## duplicate check
+    content = resp.raw_response.content
+    if is_exact_duplicate(content) or is_near_duplicate(content):
+        return []
 
     #add to unique pages and update report.txt
     defrag, _ = urldefrag(url)
@@ -240,3 +246,58 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+def is_exact_duplicate(content: bytes) -> bool:
+    M = 2 ** 32
+    checksum_value = 0
+    for byte in content:
+        checksum_value += byte 
+
+    checksum_value %= M
+
+    if checksum_value in seen_checksums:
+        return True
+    else:
+        seen_checksums.add(checksum_value)
+        return False
+
+def get_words(string: str) -> set[str]:
+    words = set()
+    curr = ""
+
+    for char in string:
+        if char.isalnum():
+            curr += char
+        else:
+            if len(curr) != 0:
+                words.add(curr)
+            curr = ""
+    
+    if len(curr) != 0:
+        words.add(curr)
+    
+    return words
+
+def jaccard_similarity(set1: set[str], set2: set[str]) -> float:
+    inter = 0
+    for word2 in set2:
+        if word2 in set1:
+            inter += 1
+
+    union = len(set1) + len(set2) - inter
+    if union != 0:
+        return inter / union
+    else:
+        return 1.0
+
+
+def is_near_duplicate(content: bytes) -> bool:
+    words_set = get_words(content.decode("utf-8", errors="ignore"))
+
+    for seen_doc in seen_docs:
+        sim = jaccard_similarity(words_set, seen_doc)
+        if sim > 0.9:
+            return True
+
+    seen_docs.append(words_set)
+    return False
