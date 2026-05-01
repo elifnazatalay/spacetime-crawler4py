@@ -24,7 +24,7 @@ STOP_WORDS = {
     "into", "is", "it", "its", "itself", "just", "me", "more", "most",
     "my", "myself", "no", "nor", "not", "now", "of", "off", "on", "once",
     "only", "or", "other", "our", "ours", "ourselves", "out", "over",
-    "own", "same", "she", "should", "so", "some", "such", "than", "that",
+    "own", "same", "she", "should", "so", "some", "such", "than", "that", 
     "the", "their", "theirs", "them", "themselves", "then", "there",
     "these", "they", "this", "those", "through", "to", "too", "under",
     "until", "up", "very", "was", "we", "were", "what", "when", "where",
@@ -100,15 +100,15 @@ def extract_next_links(url, resp):
             if net_loc == "uci.edu":
                 pass
             else:
-                subdomain_count[sub_domain] += 1
+                subdomain_count[net_loc] += 1
     
-    if len(resp.raw_response.content) > 7_000_000:
-        print("File to large to parse")
+    if len(resp.raw_response.content) > 3_000_000:
+        print("File too large to parse")
         return hyperlinks
     elif len(resp.raw_response.content)<30: #for too small of files
         return hyperlinks
 
-    soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+    soup = BeautifulSoup(resp.raw_response.content, 'lxml')
     words = get_words_from_html(soup)
     word_count = len(words)
 
@@ -137,14 +137,18 @@ def extract_next_links(url, resp):
         for word, count in word_frequencies.most_common(50):
             f.write(f"{word}, {count}\n")
 
-        f.write("\nSubdomain counts ordered by subdomain alphabetically:\n")
+        f.write(f"\nTotal unique subdomains found: {len(subdomain_count)}\n")
+        f.write("Subdomain counts ordered by subdomain alphabetically:\n")
         for key, value in sorted(subdomain_count.items(), key=lambda x: x[0]):
             f.write(f"{key}, {value}\n")
             
     for link in soup.find_all('a', href=True):
-        joined = urljoin(url, link['href'])
-        joined, _ = urldefrag(joined)
-        hyperlinks.append(joined)
+        try:
+            joined = urljoin(url, link['href'])
+            joined, _ = urldefrag(joined)
+            hyperlinks.append(joined)
+        except ValueError:
+            continue
 
     return hyperlinks
 
@@ -165,14 +169,14 @@ def is_valid(url):
             'informatics.uci.edu',
             'stat.uci.edu'
         }
-        if not any(parsed.netloc.endswith(d) for d in domains):
+        if not any(parsed.netloc.endswith("."+i) for i in domains):
             return False
         
         ## strip off fragment
         parsed = parsed._replace(fragment = "")
         
         ## invalid keywords for trap checks
-        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "tab_files"}
+        bad_words = {"signup", "logout", "login", "register", "calendar", "events", "event", "events_calendar"}
         words = parsed.path.split("/")
         for word in words:
             word = word.lower()
@@ -181,6 +185,7 @@ def is_valid(url):
             elif word.isdigit() and len(word) == 4: ## double check this to maybe restrict to a certain date
                 return False
         
+        #grape.ics.edu, doku.php, version=,
         if '/machine-learning-databases' in parsed.path:
             return False
         elif '/dataset' in parsed.path:
@@ -191,9 +196,15 @@ def is_valid(url):
             return False
         elif "tab_files=" in parsed.query:
             return False
+        elif "action=" in parsed.query:
+            return False
         elif "do=" in parsed.query:
             return False
         elif "diff=" in parsed.query:
+            return False
+        elif "version=" in parsed.query:
+            return False
+        elif "swiki" in parsed.netloc: #archived wiki and veryyy slow to download
             return False
             
         
