@@ -95,11 +95,6 @@ def extract_next_links(url, resp):
     elif resp.raw_response==None or not resp.raw_response.content:
         return hyperlinks
 
-    ## duplicate check
-    content = resp.raw_response.content
-    if is_exact_duplicate(content) or is_near_duplicate(content):
-        return []
-
     #add to unique pages and update report.txt
     defrag, _ = urldefrag(url)
     ##sunique_pages.add(defrag)
@@ -118,11 +113,16 @@ def extract_next_links(url, resp):
                 pass
             else:
                 subdomain_count[net_loc] += 1
-    
+
+    ## duplicate check
+    content = resp.raw_response.content
+    if is_exact_duplicate(content) or is_near_duplicate(content):
+        return hyperlinks
+
     if len(resp.raw_response.content) > 3_000_000:
         print("File too large to parse")
         return hyperlinks
-    elif len(resp.raw_response.content)<30: #for too small of files
+    elif len(resp.raw_response.content)<50: #for too small of files
         return hyperlinks
 
     soup = BeautifulSoup(resp.raw_response.content, 'lxml')
@@ -221,8 +221,8 @@ def is_valid(url):
             return False
         elif "version=" in parsed.query:
             return False
-        elif "swiki" in parsed.netloc: #archived wiki and veryyy slow to download
-            return False
+        # elif "swiki" in parsed.netloc: #archived wiki and veryyy slow to download
+        #     return False
             
         
         #trap checks
@@ -298,7 +298,7 @@ def is_near_duplicate(content: bytes) -> bool:
 
     for seen_doc in seen_docs:
         sim = jaccard_similarity(words_set, seen_doc)
-        if sim > 0.9:
+        if sim > 0.85:
             return True
 
     seen_docs.append(words_set)
