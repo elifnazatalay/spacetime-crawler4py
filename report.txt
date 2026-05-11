@@ -1,5 +1,124 @@
-Final number of unique pages: 144
+Final number of unique pages: 3668
 
 Longest page by word count:
-URL: https://cml.ics.uci.edu/category/aiml
-Word count: 25498
+URL: http://www.ics.uci.edu/~dvk/pub/C16_SIGMOD14_Jeffrey.ppsx
+Word count: 377836
+
+50 most common words:
+data, 6393
+10, 5998
+will, 5739
+university, 5472
+research, 5395
+ramesh, 4783
+information, 4742
+computer, 4340
+pg, 4260
+search, 4169
+learning, 3916
+can, 3881
+uci, 3848
+jain, 3719
+values, 3517
+students, 3373
+project, 3316
+insert, 3298
+current, 3258
+systems, 3198
+science, 3130
+01, 3030
+doi, 2981
+past, 2894
+time, 2857
+using, 2806
+pdf, 2712
+irvine, 2685
+00, 2563
+models, 2531
+ics, 2520
+events, 2515
+computing, 2487
+conference, 2467
+us, 2460
+one, 2419
+based, 2381
+https, 2355
+use, 2312
+people, 2255
+new, 2243
+close, 2224
+11, 2203
+http, 2198
+courses, 2196
+vision, 2138
+com, 2122
+org, 2054
+projects, 2047
+ca, 2046
+
+Total unique subdomains found: 64
+Subdomain counts ordered by subdomain alphabetically:
+acoi.ics.uci.edu, 76
+archive-beta.ics.uci.edu, 5
+archive.ics.uci.edu, 9
+asterix.ics.uci.edu, 7
+betapro.proteomics.ics.uci.edu, 1
+cdb.ics.uci.edu, 49
+cert.ics.uci.edu, 17
+chemdb.ics.uci.edu, 1
+chenli.ics.uci.edu, 10
+cloudberry.ics.uci.edu, 4
+cml.ics.uci.edu, 68
+code.ics.uci.edu, 14
+computableplant.ics.uci.edu, 85
+courselisting.ics.uci.edu, 1
+create.ics.uci.edu, 3
+cs.ics.uci.edu, 12
+deeprxn.ics.uci.edu, 30
+dgillen.ics.uci.edu, 9
+ds4all.ics.uci.edu, 9
+duttgroup.ics.uci.edu, 41
+dynamo.ics.uci.edu, 32
+emj.ics.uci.edu, 39
+flamingo.ics.uci.edu, 21
+fr.ics.uci.edu, 3
+futurehealth.ics.uci.edu, 120
+grape.ics.uci.edu, 411
+hobbes.ics.uci.edu, 10
+hpi.ics.uci.edu, 5
+i-sensorium.ics.uci.edu, 4
+icde2023.ics.uci.edu, 46
+industryshowcase.ics.uci.edu, 21
+informatics.ics.uci.edu, 14
+ipubmed.ics.uci.edu, 1
+isg.ics.uci.edu, 99
+luci.ics.uci.edu, 3
+mailman.ics.uci.edu, 29
+mcs.ics.uci.edu, 12
+mds.ics.uci.edu, 9
+mhcid.ics.uci.edu, 18
+mlphysics.ics.uci.edu, 86
+mswe.ics.uci.edu, 10
+mupro.proteomics.ics.uci.edu, 3
+nalini.ics.uci.edu, 7
+ngs.ics.uci.edu, 1151
+oai.ics.uci.edu, 6
+pepito.proteomics.ics.uci.edu, 5
+psearch.ics.uci.edu, 1
+radicle.ics.uci.edu, 5
+scale.ics.uci.edu, 6
+scratch.proteomics.ics.uci.edu, 4
+selectpro.proteomics.ics.uci.edu, 7
+sherlock.ics.uci.edu, 6
+stat.ics.uci.edu, 10
+summeracademy.ics.uci.edu, 12
+tastier.ics.uci.edu, 1
+tutoring.ics.uci.edu, 5
+unite.ics.uci.edu, 10
+vision.ics.uci.edu, 164
+www-db.ics.uci.edu, 25
+www.cs.uci.edu, 1
+www.ics.uci.edu, 774
+www.informatics.uci.edu, 13
+www.stat.uci.edu, 3
+xtune.ics.uci.edu, 5

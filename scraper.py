@@ -15,8 +15,6 @@ word_frequencies = Counter()
 seen_checksums = set()
 seen_docs = []
 
-## restructure?
-
 # Stop words sourced from: https://www.ranks.nl/stopwords
 STOP_WORDS = {
     "a", "about", "above", "after", "again", "against", "all", "am", "an",
@@ -48,6 +46,7 @@ STOP_WORDS = {
 def scraper(url, resp):
     
     #ensure no duplicate links within a crawl
+    #changed from starter code because avoid duplicate links from the same page and should skip bad pages and track unique pages
     links = extract_next_links(url, resp)
 
     result = []
@@ -68,6 +67,7 @@ def scraper(url, resp):
 
     return result
 
+#Used to ensure no HTML markup
 def get_words_from_html(soup):
     text = soup.get_text(separator=" ")
     words = re.findall(r"[a-zA-Z0-9]+", text.lower())
@@ -97,18 +97,14 @@ def extract_next_links(url, resp):
 
     #add to unique pages and update report.txt
     defrag, _ = urldefrag(url)
-    ##sunique_pages.add(defrag)
 
      ## write subdomain code here
     if defrag not in unique_pages:
         unique_pages.add(defrag)
         parsed = urlparse(url)
         net_loc = parsed.netloc
-        # parts = net_loc.split(".")
-        # sub_domain = ".".join(parts[0:len(parts)-2])
-
+        
         if net_loc.endswith("uci.edu"):
-            ##sub_domain = net_loc.replace(".uci.edu", "")
             if net_loc == "uci.edu":
                 pass
             else:
@@ -119,7 +115,8 @@ def extract_next_links(url, resp):
     if is_exact_duplicate(content) or is_near_duplicate(content):
         return hyperlinks
 
-    if len(resp.raw_response.content) > 3_000_000:
+    #through trial and error, these were good values. Started 10 mil then went down from there
+    if len(resp.raw_response.content) > 3_000_000: #for too big of a file
         print("File too large to parse")
         return hyperlinks
     elif len(resp.raw_response.content)<50: #for too small of files
@@ -129,6 +126,7 @@ def extract_next_links(url, resp):
     words = get_words_from_html(soup)
     word_count = len(words)
 
+    #longest page count code
     filtered_words = []
 
     for word in words:
@@ -141,7 +139,7 @@ def extract_next_links(url, resp):
         longest_page_word_count = word_count
         longest_page_url = defrag
    
-
+    #generate report
     with open('report.txt', 'w') as f:
         pages = str(len(unique_pages))
         f.write(f"Final number of unique pages: {pages}\n\n")
@@ -159,6 +157,8 @@ def extract_next_links(url, resp):
         for key, value in sorted(subdomain_count.items(), key=lambda x: x[0]):
             f.write(f"{key}, {value}\n")
             
+    #find all links on a page aka find all the anchor tags 
+    #ValueError added to prevent from downloading "bad links"
     for link in soup.find_all('a', href=True):
         try:
             joined = urljoin(url, link['href'])
@@ -186,6 +186,7 @@ def is_valid(url):
             'informatics.uci.edu',
             'stat.uci.edu'
         }
+        #running into an issue where we were crawling physics.uci.edu
         if not any(parsed.netloc.endswith("."+i) for i in domains):
             return False
         
@@ -209,7 +210,7 @@ def is_valid(url):
             return False
         elif '/people' in parsed.path: #fixes denied by robot rules 608 error for lots of links
             return False
-        elif "tab_details=" in parsed.query:
+        elif "tab_details=" in parsed.query: #ensures unique and useful urls by stripping repetitive queries
             return False
         elif "tab_files=" in parsed.query:
             return False
@@ -221,15 +222,14 @@ def is_valid(url):
             return False
         elif "version=" in parsed.query:
             return False
-        # elif "swiki" in parsed.netloc: #archived wiki and veryyy slow to download
-        #     return False
             
         
         #trap checks
-        if len(url) > 200. or len(parsed.query)>100:
+        #went down from bigger numbers like 500 and 10 and tested downwards
+        if len(url) > 200 or len(parsed.query)>100:
             return False
          
-        depth_count = parsed.path.count('/')
+        depth_count = parsed.path.count('/') 
         if depth_count > 8: 
             return False
 
@@ -250,7 +250,9 @@ def is_valid(url):
         raise
 
 def is_exact_duplicate(content: bytes) -> bool:
-    M = 2 ** 32
+    #use checksum to check exact duplicate
+    #use checksum to basically store in a set the number of bytes per page and compare based on that
+    M = 2 ** 32 #standard word size in networking operations
     checksum_value = 0
     for byte in content:
         checksum_value += byte 
@@ -267,6 +269,8 @@ def get_words(string: str) -> set[str]:
     words = set()
     curr = ""
 
+    #used in in_near_duplicates
+    #unique words in the string for later comparison
     for char in string:
         if char.isalnum():
             curr += char
@@ -275,18 +279,22 @@ def get_words(string: str) -> set[str]:
                 words.add(curr)
             curr = ""
     
+    #accounts for last word in string
     if len(curr) != 0:
         words.add(curr)
     
     return words
 
 def jaccard_similarity(set1: set[str], set2: set[str]) -> float:
+    #find the intersection or common words they have
     inter = 0
     for word2 in set2:
         if word2 in set1:
             inter += 1
 
+    #compute the union using basic probability rule
     union = len(set1) + len(set2) - inter
+    #prevent zero error
     if union != 0:
         return inter / union
     else:
@@ -294,12 +302,16 @@ def jaccard_similarity(set1: set[str], set2: set[str]) -> float:
 
 
 def is_near_duplicate(content: bytes) -> bool:
+    #check for near duplicates using jaccard_similarity
+    #call helper function
     words_set = get_words(content.decode("utf-8", errors="ignore"))
 
+    #compare similarity of all the seen urls
     for seen_doc in seen_docs:
         sim = jaccard_similarity(words_set, seen_doc)
+        #changed from 0.9
         if sim > 0.85:
             return True
-
+    
     seen_docs.append(words_set)
     return False
